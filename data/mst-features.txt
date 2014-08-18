@@ -1,0 +1,54 @@
+# unigrams
+mod 0 form
+mod 0 postag
+mod 0 form + mod 0 postag
+head 0 form
+head 0 postag
+head 0 form + head 0 postag
+
+# bigrams
+mod 0 form + head 0 form
+mod 0 postag + head 0 postag
+head 0 form + head 0 postag + mod 0 form
+head 0 form + head 0 postag + mod 0 postag
+mod 0 form + mod 0 postag + head 0 form
+mod 0 form + mod 0 postag + head 0 postag
+mod 0 form + mod 0 postag + head 0 form + head 0 postag
+
+# postag pairs
+mod -1 postag + mod 0 postag + head -1 postag + head 0 postag
+mod -1 postag + mod 0 postag + head 0 postag + head 1 postag
+mod 0 postag + mod 1 postag + head -1 postag + head 0 postag
+mod 0 postag + mod 1 postag + head 0 postag + head 1 postag
+
+## tree features - uplink
+#mod 0 up form
+#mod 0 up postag
+#head 0 up form
+#head 0 up postag
+#
+## tree features - downlink
+#mod 0 down form
+#mod 0 down postag
+#head 0 down form
+#head 0 down postag
+#
+## tree features - mod/mod pairs
+#mod 0 form + mod 0 up form
+#mod 0 postag + mod 0 up postag
+#mod 0 form + mod 0 down form
+#mod 0 postag + mod 0 down postag
+#
+## tree features - head/head pairs
+#head 0 form + head 0 up form
+#head 0 postag + head 0 up postag
+#head 0 form + head 0 down form
+#head 0 postag + head 0 down postag
+#
+## tree features - mod/head pairs
+#mod 0 form + mod 0 up form + head 0 up form
+#mod 0 postag + mod 0 up postag + head 0 up postag
+#head 0 form + head 0 up form + mod 0 up form
+#head 0 postag + head 0 up postag + mod 0 up postag
+#mod 0 form + mod 0 up form + head 0 form + head 0 up form
+#mod 0 postag + mod 0 up postag + head 0 postag + head 0 up postag
