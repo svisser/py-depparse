@@ -30,12 +30,12 @@ logging = climate.get_logger(__name__)
 
 
 class Parser:
-    '''An abstract base class for parallelized dependency parsers.
+    '''An abstract base class for dependency parsers.
 
     To implement this class, provide function bodies for the learn and parse
     methods. These methods are used to learn and parse an individual sentence,
     respectively, and are called in turn from wrapper methods that manage the
-    training and testing processes across distributed workers.
+    training and testing processes.
     '''
 
     def __init__(self, ruleset, build_classifier):
@@ -90,40 +90,20 @@ class Parser:
         '''
         raise NotImplementedError
 
-    def train(self, sents, concurrency=1, **kwargs):
+    def train(self, sents, **kwargs):
         '''Train on a set of sentences.
 
         sents: A set of sentences to train on.
-        concurrency: Use this many parallel processes for training.
 
         The remainder of the keyword arguments are passed to the _training_args
-        method to extract arguments for running the parallel training processes.
+        method to extract arguments for running the learning process.
         '''
-        if concurrency > 1:
-            def build_classifiers(index):
-                return (self._build_classifier(), self._build_classifier())
-
-            logging.info('training: %d concurrent processes', concurrency)
-            result_q = parallel.launch(concurrency,
-                                       sents,
-                                       parallel._train,
-                                       self,
-                                       mkargs=build_classifiers,
-                                       **kwargs)
-            for _ in xrange(concurrency):
-                ac, lc = result_q.get()
-                self._action_classifier += ac
-                self._label_classifier += lc
-
-        else:
-            logging.info('training: serially')
-            for sent in sents:
-                logging.debug('training on [%s]', sent)
-                self.learn(sent,
-                           self._action_classifier,
-                           self._label_classifier,
-                           **kwargs)
-
+        for sent in sents:
+            logging.debug('training on [%s]', sent)
+            self.learn(sent,
+                       self._action_classifier,
+                       self._label_classifier,
+                       **kwargs)
         self._action_classifier.finalize()
         self._label_classifier.finalize()
 
@@ -136,26 +116,15 @@ class Parser:
         '''
         raise NotImplementedError
 
-    def test(self, sents, concurrency=1, **kwargs):
-        '''Test in parallel on a set of unseen-during-training Sentences.
+    def test(self, sents, **kwargs):
+        '''Test on a set of unseen-during-training Sentences.
 
         sents: A set of Sentences to evaluate for testing.
-        concurrency: Use this many parallel processes for testing.
         '''
         evaluator = Evaluator()
-
-        if concurrency > 1:
-            logging.info('testing: %d concurrent processes', concurrency)
-            result_q = parallel.launch(
-                concurrency, sents, parallel._test, self, **kwargs)
-            for _ in sents:
-                evaluator.measure(*result_q.get())
-
-        else:
-            logging.info('testing: serially')
-            for sent in sents:
-                evaluator.measure(est=self.parse(sent, **kwargs), sent=sent)
-
+        logging.info('testing: serially')
+        for sent in sents:
+            evaluator.measure(est=self.parse(sent, **kwargs), sent=sent)
         return evaluator
 
 
