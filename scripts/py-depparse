@@ -1,0 +1,118 @@
+#!/usr/bin/python
+
+# Copyright (c) 2010 Leif Johnson <leif@leifjohnson.net>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import sys
+import climate
+import depparse
+import gzip
+import pickle
+import random
+
+logging = climate.get_logger('py-depparse')
+
+climate.add_arg('--load-model', metavar='FILE',
+                help='load a saved parser from FILE -- skips training')
+climate.add_arg('--parser', options=('mst', ),
+                help='use the specified type of parser')
+climate.add_arg('--show-top-features', metavar='N', type=int, default=0,
+                help='display the top N features for each label in the parser')
+
+g = climate.add_group('training options')
+g.add_argument('--feature-file', metavar='FILE',
+               help='read feature extraction rules from this file')
+g.add_argument('--feature-beam', type=int, default=100000, metavar='N',
+               help='retain just the top N features in the classifier')
+g.add_argument('--log-distance', type=float, default=1.5, metavar='B',
+               help='if nonzero, bin mod-head feature distance using log base B')
+g.add_argument('--negative-sample-ratio', type=float, default=5, metavar='R',
+               help='train on R negative examples per positive example')
+g.add_argument('--pos-window-width', type=int, default=5, metavar='N',
+               help='include at most N POS tags between words as features')
+g.add_argument('--save-model', metavar='FILE',
+               help='save the trained parser to FILE')
+g.add_argument('--training-count', type=int, metavar='N',
+               help='train on at most N sentences from the training data')
+g.add_argument('--training-data', metavar='FILE',
+               help='train a new parser on this set of sentences')
+g.add_argument('--training-iterations', type=int, default=2, metavar='N',
+               help='pass through the training data N times')
+
+g = climate.add_group('testing options')
+g.add_argument('--testing-data', metavar='FILE',
+               help='test the parser on this set of sentences')
+g.add_argument('--max-improvements', default=0, type=int, metavar='N',
+               help='allow at most N parse improvements per sentence')
+
+
+def main(args):
+    parser = None
+    ruleset = None
+
+    if args.load_model:
+        logging.error('loading parser from %s', args.load_model)
+        parser = pickle.load(gzip.open(args.load_model, 'rb'))
+
+    if args.feature_file:
+        ruleset = depparse.MstRuleset(args.feature_file,
+                                      args.pos_window_width,
+                                      args.log_distance)
+
+    if args.training_data:
+        if ruleset is None:
+            logging.critical('Error: no --feature-file provided for training!')
+            sys.exit(1)
+
+        build = lambda: depparse.VotedPerceptron(args.feature_beam)
+        parser = depparse.MstParser(ruleset, build)
+        with open(args.training_data) as handle:
+            corpus = depparse.sentences_from_conll(handle, args.training_count)
+
+        logging.error('training on %d sentences from %s', len(corpus), args.training_count)
+        i = 0
+        while i < args.training_iterations:
+            parser.train(corpus, negative_sample_ratio=args.negative_sample_ratio)
+            logging.error('finished training iteration %d', i + 1)
+            if len(corpus) > 100:
+                e = parser.test(random.sample(corpus, 100))
+                logging.error('las on training data: %.2f', e.labeled_attachment_score())
+                logging.error('uas on training data: %.2f', e.unlabeled_attachment_score())
+            i += 1
+
+    if parser is None:
+        logging.critical('Error: --training-data or --load-model required to create a parser!')
+        sys.exit(1)
+
+    if args.save_model:
+        logging.error('saving parser to %s', args.save_model)
+        pickle.dump(p, gzip.open(args.save_model, 'wb'), -1)
+
+    if args.show_top_features:
+        parser.log_top_features(args.show_top_features)
+
+    if args.testing_data:
+        with open(args.testing_data) as handle:
+            corpus = depparse.sentences_from_conll(handle)
+        parser.test(corpus, max_improvements=args.max_improvements).log_results()
+
+
+if __name__ == '__main__':
+    climate.call(main)

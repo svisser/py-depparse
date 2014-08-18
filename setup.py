@@ -16,7 +16,7 @@ setuptools.setup(
               'nlp '
               'nlproc '
               ),
-    data_files=[('depparse/data', ['data/mst-features.txt'])],
+    scripts=['scripts/py-depparse'],
     install_requires=['climate', 'scikit-learn'],
     classifiers=[
         'Development Status :: 4 - Beta',
