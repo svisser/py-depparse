@@ -42,7 +42,7 @@ class Parser:
         '''Initialize the parser with a rule set and a beam width.
 
         ruleset: Some sort of feature extraction rules. The contract between
-          this object and the parser is completely flexible ; the only important
+          this object and the parser is completely flexible; the only important
           thing here is that the implementaions of parse() and train() must obey
           the ruleset contract.
         build_classifier: A callable that takes one argument---the number of
@@ -52,7 +52,7 @@ class Parser:
         self._ruleset = ruleset
         self._build_classifier = build_classifier
         if not callable(build_classifier):
-            logging.critical('Error ! build_classifier must be callable.')
+            logging.critical('Error: build_classifier must be callable')
             sys.exit(1)
         self._action_classifier = build_classifier()
         self._label_classifier = build_classifier()
@@ -122,7 +122,6 @@ class Parser:
         sents: A set of Sentences to evaluate for testing.
         '''
         evaluator = Evaluator()
-        logging.info('testing: serially')
         for sent in sents:
             evaluator.measure(est=self.parse(sent, **kwargs), sent=sent)
         return evaluator
@@ -203,7 +202,7 @@ class Evaluator(object):
         '''
         if len(est) != len(sent):
             logging.critical('Length of estimate %s != '
-                             'length of sentence %s !', est, sent)
+                             'length of sentence %s', est, sent)
             sys.exit(1)
 
         all_correct = all_correct_labeled = True
