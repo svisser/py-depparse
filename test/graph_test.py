@@ -1,5 +1,6 @@
-import unittest
 import collections
+import logging
+import unittest
 
 from depparse.graph import Digraph
 
