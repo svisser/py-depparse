@@ -28,7 +28,7 @@ class PerceptronTest(unittest.TestCase):
 
     def assertWeights(self, **weights):
         self.assertEqual(set(weights), set(self.vp._acc_weights))
-        for label, expected in weights.iteritems():
+        for label, expected in weights.items():
             actual = self.vp._acc_weights.get(label)
             self.assert_(actual is not None)
             self.assertEqual(expected, actual,

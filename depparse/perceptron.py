@@ -23,7 +23,7 @@
 import climate
 import collections
 
-logging = climage.get_logger(__name__)
+logging = climate.get_logger(__name__)
 
 def _dot(fws, fs):
     return sum(fws.get(f, 0) for f in fs)
@@ -94,8 +94,8 @@ class VotedPerceptron(object):
 
         num_features: The number of features to return for each class.
         '''
-        for label, fws in self._acc_weights.iteritems():
-            ordered = sorted(fws.iteritems(), key=lambda x: -abs(x[1]))
+        for label, fws in self._acc_weights.items():
+            ordered = sorted(fws.items(), key=lambda x: -abs(x[1]))
             yield label, len(ordered), [(f, w / self._acc_iterations[label])
                                         for f, w in ordered[:num_features]]
 
@@ -111,7 +111,7 @@ class VotedPerceptron(object):
         '''
         max_label = None
         max_score = -1e100
-        for label, fws in weights.iteritems():
+        for label, fws in weights.items():
             score = dot(fws, features)
             if divide:
                 score /= self._acc_iterations[label]
@@ -131,11 +131,11 @@ class VotedPerceptron(object):
     def __iadd__(self, other):
         '''Merge the weights from another classifier into this one.'''
         other.finalize()
-        for label, source in other._acc_weights.iteritems():
+        for label, source in other._acc_weights.items():
             self._acc_iterations.setdefault(label, 0.0)
             target = self._acc_weights.setdefault(
                 label, collections.defaultdict(float))
-            for f, w in source.iteritems():
+            for f, w in source.items():
                 target[f] += w
             self._prune(target)
             self._acc_iterations[label] += other._acc_iterations[label]
@@ -153,7 +153,7 @@ class VotedPerceptron(object):
         s = self._cur_iterations[label]
         if s > 0:
             target = self._acc_weights[label]
-            for f, w in self._cur_weights[label].iteritems():
+            for f, w in self._cur_weights[label].items():
                 target[f] += s * w
             self._prune(target)
             self._cur_iterations[label] = 0
