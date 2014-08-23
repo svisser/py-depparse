@@ -1,5 +1,3 @@
-import sys
-import logging
 import unittest
 import collections
 
@@ -214,11 +212,3 @@ class MstTest(unittest.TestCase):
             ('bat_8', 'the_7'): (5, 'DET'),
 
             }, [(2, 49), (2, 36)])
-
-
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stdout,
-                        level=logging.DEBUG,
-                        format='%(levelname).1s %(asctime)s %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
-    unittest.main()
