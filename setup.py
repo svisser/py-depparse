@@ -18,7 +18,7 @@ setuptools.setup(
               ),
     scripts=['scripts/py-depparse'],
     install_requires=['climate'],
-    ext_modules=[Extension('depparse._sparse', sources=['src/sparse.c'])],
+    ext_modules=[setuptools.Extension('depparse._sparse', sources=['src/sparse.c'])],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
