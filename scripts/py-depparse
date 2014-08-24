@@ -31,12 +31,12 @@ logging = climate.get_logger('py-depparse')
 
 climate.add_arg('--load-model', metavar='FILE',
                 help='load a saved parser from FILE -- skips training')
-climate.add_arg('--parser', options=('mst', ),
+climate.add_arg('--parser', choices=('mst', ),
                 help='use the specified type of parser')
 climate.add_arg('--show-top-features', metavar='N', type=int, default=0,
                 help='display the top N features for each label in the parser')
 
-g = climate.add_group('training options')
+g = climate.add_arg_group('training options')
 g.add_argument('--feature-file', metavar='FILE',
                help='read feature extraction rules from this file')
 g.add_argument('--feature-beam', type=int, default=100000, metavar='N',
@@ -56,7 +56,7 @@ g.add_argument('--training-data', metavar='FILE',
 g.add_argument('--training-iterations', type=int, default=2, metavar='N',
                help='pass through the training data N times')
 
-g = climate.add_group('testing options')
+g = climate.add_arg_group('testing options')
 g.add_argument('--testing-data', metavar='FILE',
                help='test the parser on this set of sentences')
 g.add_argument('--max-improvements', default=0, type=int, metavar='N',
