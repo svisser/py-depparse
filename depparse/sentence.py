@@ -147,12 +147,12 @@ class Sequence:
 
     def itermods(self):
         '''Iterate over all valid modifier indices in the Sequence.'''
-        for mod in xrange(1, len(self)):
+        for mod in range(1, len(self)):
             yield mod
 
     def iterheads(self):
         '''Iterate over all valid head indices in the Sequence.'''
-        for head in xrange(0, len(self)):
+        for head in range(0, len(self)):
             yield head
 
 

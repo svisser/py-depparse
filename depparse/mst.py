@@ -76,7 +76,7 @@ class Estimate(parser.Estimate):
                 if mod != head:
                     succs[mod]
                     succs[head].append(mod)
-        floor = min(self._qscores.itervalues())
+        floor = min(self._qscores.values())
         score = lambda h, m: self._qscores[h, m] - floor
         label = lambda h, m: self._qlabels[h, m]
         for head, mod in graph.Digraph(succs, score, label).mst().iteredges():
@@ -114,7 +114,7 @@ class Rule:
 
     def _parse(self, chunk):
         '''Parse a chunk of a subrule string.'''
-        tokens = filter(None, re.split(r'[\.\s\[\]\(\)]+', chunk.strip()))
+        tokens = [t.strip() for t in re.split(r'[\.\s\[\]\(\)]+', chunk.strip()) if t.strip()]
 
         feature_token = tokens.pop()
         feature = self._parse_feature(feature_token)
@@ -217,20 +217,20 @@ class Ruleset(list):
         self.log_distance = log_distance
 
         for i, l in enumerate(open(filename)):
-            l = l.strip()
-            if l.startswith('#') or l.startswith('//') or not l:
+            l = l.split('#')[0].split('//')[0].strip()
+            if not l:
                 continue
             try:
                 self.append(Rule(l.lower()))
             except:
-                logging.critical(
-                    '%s line %d: cannot parse rule: %r', filename, i, l)
+                raise
+                logging.critical('%s line %d: cannot parse rule: %r', filename, i, l)
                 sys.exit(1)
 
     def _apply(self, seq, mod, head, use_tree_features=True):
         '''Iterate over our rules to produce a feature set.'''
         def pos(start, inc, limit):
-            for i in xrange(start, start + inc * self.postag_window, inc):
+            for i in range(start, start + inc * self.postag_window, inc):
                 if i < 0 or i >= len(seq):
                     break
                 yield seq.feature(i, sentence.FEATURE_POSTAG)
@@ -312,7 +312,7 @@ class Parser(parser.Parser):
         '''
         est = Estimate(sent)
 
-        for i in xrange(1 + max_improvements):
+        for i in range(1 + max_improvements):
             for mod in est.itermods():
                 for head in est.iterheads():
                     features = tuple(self._ruleset.apply(est, mod, head, i > 0))
