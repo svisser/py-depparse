@@ -1,6 +1,9 @@
 import os
 import setuptools
 
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README.rst')) as readme:
+    long_description = readme.read()
+
 setuptools.setup(
     name='depparse',
     version='0.1.0',
@@ -8,7 +11,7 @@ setuptools.setup(
     author='Leif Johnson',
     author_email='leif@leifjohnson.net',
     description='dependency parsers for natural language text',
-    long_description=open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README.rst')).read(),
+    long_description=long_description,
     license='MIT',
     url='http://github.com/lmjohns3/py-depparse/',
     keywords=('parsing '
